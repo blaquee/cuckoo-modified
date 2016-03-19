@@ -20,11 +20,9 @@ def demux_zip(filename, options):
     retlist = []
 
     try:
-        # don't try to extract from office docs
-        magic = File(filename).get_type()
-        if "Microsoft" in magic or "Java Jar" in magic or "Composite Document File" in magic:
-            return retlist
-        if "PE32" in magic or "MS-DOS executable" in magic:
+        # only extract from files with no extension or with .bin (downloaded from us) or .zip extensions
+        ext = os.path.splitext(filename)[1]
+        if ext != "" and ext != ".zip" and ext != ".bin":
             return retlist
 
         extracted = []
@@ -55,7 +53,7 @@ def demux_zip(filename, options):
                     continue
                 extensions = [
                     "", ".exe", ".dll", ".jar", ".pdf", ".msi", ".bin", ".scr", ".zip", ".htm", ".html", 
-                    ".doc", ".dot", ".docx", ".dotx", ".docm", ".dotm", ".docb", ".mht", ".js", ".jse", ".vbs", ".vbe",
+                    ".doc", ".dot", ".docx", ".dotx", ".docm", ".dotm", ".docb", ".mht", ".mso", ".js", ".jse", ".vbs", ".vbe",
                     ".xls", ".xlt", ".xlm", ".xlsx", ".xltx", ".xlsm", ".xltm", ".xlsb", ".xla", ".xlam", ".xll", ".xlw",
                     ".ppt", ".pot", ".pps", ".pptx", ".pptm", ".potx", ".potm", ".ppam", ".ppsx", ".ppsm", ".sldx", ".sldm"
                 ]
@@ -88,11 +86,6 @@ def demux_rar(filename, options):
         return retlist
 
     try:
-        # don't try to auto-extract RAR SFXes
-        magic = File(filename).get_type()
-        if "PE32" in magic or "MS-DOS executable" in magic:
-            return retlist
-
         extracted = []
         password="infected"
         fields = options.split(",")
@@ -124,7 +117,7 @@ def demux_rar(filename, options):
                     continue
                 extensions = [
                     "", ".exe", ".dll", ".jar", ".pdf", ".msi", ".bin", ".scr", ".zip", ".htm", ".html", 
-                    ".doc", ".dot", ".docx", ".dotx", ".docm", ".dotm", ".docb", ".mht", ".js", ".jse", ".vbs", ".vbe",
+                    ".doc", ".dot", ".docx", ".dotx", ".docm", ".dotm", ".docb", ".mht", ".mso", ".js", ".jse", ".vbs", ".vbe",
                     ".xls", ".xlt", ".xlm", ".xlsx", ".xltx", ".xlsm", ".xltm", ".xlsb", ".xla", ".xlam", ".xll", ".xlw",
                     ".ppt", ".pot", ".pps", ".pptx", ".pptm", ".potx", ".potm", ".ppam", ".ppsx", ".ppsm", ".sldx", ".sldm"
                 ]
@@ -189,6 +182,13 @@ def demux_sample(filename, package, options):
     # this will allow for the ZIP package to be used to analyze binaries with included DLL dependencies
     # do the same if file= is specified in the options
     if package or "file=" in options:
+        return [ filename ]
+
+    # don't try to extract from office docs
+    magic = File(filename).get_type()
+    if "Microsoft" in magic or "Java Jar" in magic or "Composite Document File" in magic:
+        return [ filename ]
+    if "PE32" in magic or "MS-DOS executable" in magic:
         return [ filename ]
 
     retlist = demux_zip(filename, options)
